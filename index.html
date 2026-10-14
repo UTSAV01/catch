@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#100b1d" />
+<title>Catch the Spy — Party Game</title>
+<style>
+  :root{--bg:#0b0813;--panel:#151023;--panel2:#1d1530;--purple:#a855f7;--pink:#f472b6;--cyan:#67e8f9;--text:#f8f4ff;--muted:#b8accd;--line:#38284f;--green:#86efac;--red:#fda4af}
+  *{box-sizing:border-box} html{min-height:100%;background:var(--bg)} [hidden]{display:none!important}
+  body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 15% 0%,#281044 0,transparent 38%),radial-gradient(ellipse at 95% 20%,#171b45 0,transparent 32%),var(--bg);}
+  button,input{font:inherit} button{cursor:pointer}
+  .shell{width:min(920px,100%);margin:0 auto;padding:22px 18px 42px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,var(--purple),#5b21b6);box-shadow:0 0 28px #a855f755;font-size:25px}
+  h1{font-size:clamp(20px,4vw,28px);letter-spacing:.07em;margin:0;font-weight:900}.subtitle{font-size:11px;letter-spacing:.22em;color:var(--muted);margin-top:3px}
+  .pill{border:1px solid #5b3a7b;background:#28173a;color:#e9d5ff;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:800;letter-spacing:.12em;white-space:nowrap}
+  .hero{border:1px solid var(--line);border-radius:26px;padding:clamp(20px,5vw,38px);background:linear-gradient(145deg,#1a1229ee,#100c1bf2);box-shadow:0 18px 65px #0006;position:relative;overflow:hidden}
+  .hero:before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-120px;top:-130px;background:#9333ea2b;filter:blur(3px);pointer-events:none}
+  .eyebrow{font-size:11px;letter-spacing:.2em;color:var(--cyan);font-weight:900;text-transform:uppercase;margin-bottom:10px}
+  h2{font-size:clamp(25px,5vw,38px);line-height:1.1;margin:0 0 12px;letter-spacing:-.04em} p{color:var(--muted);line-height:1.65;margin:0 0 18px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:8px}.field label{font-size:12px;color:#e9d5ff;font-weight:800;letter-spacing:.05em}
+  input,select{width:100%;background:#0c0915;border:1px solid #47325e;border-radius:12px;color:var(--text);padding:12px 13px;outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #a855f726}select{color-scheme:dark}
+  .category-options{display:flex;flex-wrap:wrap;gap:8px}.category-option{padding:9px 12px;border:1px solid #47325e;border-radius:999px;background:#100b1d;color:var(--muted);font-size:12px;font-weight:800}.category-option.selected{color:white;border-color:var(--purple);background:linear-gradient(120deg,#55208a,#39204f);box-shadow:0 0 0 2px #a855f726}
+  .players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 22px}.player-input{display:flex;align-items:center;gap:9px}.num{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:10px;background:#302044;color:#d8b4fe;font-size:12px;font-weight:900}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}.stat{padding:13px;border:1px solid var(--line);border-radius:15px;background:#100b1d99}.stat strong{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:13px;padding:13px 18px;font-weight:900;transition:transform .15s,filter .15s}.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}.btn:active{transform:translateY(0)}.primary{background:linear-gradient(100deg,#9333ea,#c026d3);color:white;box-shadow:0 8px 24px #9333ea40}.secondary{background:#251934;border:1px solid #50366b;color:#f3e8ff}.ghost{background:transparent;border:1px solid #49345e;color:var(--muted)}.danger{background:#4a1c35;border:1px solid #7f294d;color:#fecdd3}.wide{width:100%}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.actions .wide{flex:1}
+  .screen{display:none}.screen.active{display:block;animation:screenEnter .34s cubic-bezier(.2,.75,.25,1)}@keyframes screenEnter{from{opacity:0;transform:translateY(10px) scale(.995)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .progress{height:5px;background:#2b2038;border-radius:9px;overflow:hidden;margin:0 0 23px}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));transition:width .3s}
+  .center{text-align:center}.big-icon{font-size:55px;margin:8px 0 14px;filter:drop-shadow(0 0 20px #a855f755)}.role-card{border:1px solid #553878;border-radius:20px;padding:clamp(22px,5vw,34px);background:radial-gradient(ellipse at top,#35204f,#130e20 70%);margin:18px 0}.role-card.revealed{animation:roleReveal .55s cubic-bezier(.18,.8,.25,1)}@keyframes roleReveal{0%{opacity:.55;transform:perspective(700px) rotateX(-12deg) scale(.97)}65%{opacity:1;transform:perspective(700px) rotateX(2deg) scale(1.015)}100%{transform:perspective(700px) rotateX(0) scale(1)}}.secret-word{font-size:clamp(28px,7vw,46px);font-weight:950;letter-spacing:.02em;color:#fff;text-shadow:0 0 24px #c084fc88;margin:12px 0;overflow-wrap:anywhere}.role-tag{display:inline-block;border-radius:999px;padding:7px 13px;background:#362049;color:#e9d5ff;font-weight:900;font-size:11px;letter-spacing:.12em}.warning{font-size:13px;color:#f5d0fe;margin-top:14px}.player-badge{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:12px;background:#20162e;border:1px solid #49315f;color:#f3e8ff;font-weight:800}
+  .clue-list{display:grid;gap:9px;margin:18px 0}.clue{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:13px;background:#100b1d}.clue .avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#332047;font-size:18px}.clue strong{display:block}.clue small{color:var(--muted)}
+  .vote-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}.vote-option{background:#120d1e;border:1px solid #443056;border-radius:15px;padding:15px;color:var(--text);text-align:left;display:flex;align-items:center;gap:10px;transition:transform .18s ease,border-color .18s ease,background .18s ease}.vote-option:hover:not(:disabled){transform:translateY(-2px)}.vote-option.selected{border-color:var(--pink);background:#35182f;box-shadow:0 0 0 2px #f472b633;animation:votePick .24s ease-out}@keyframes votePick{50%{transform:scale(1.025)}}.vote-option .check{margin-left:auto;color:var(--pink);font-size:18px}.vote-option:disabled{opacity:.45;cursor:not-allowed}
+  .result-banner{border-radius:18px;padding:22px;text-align:center;border:1px solid #68458b;background:radial-gradient(ellipse at top,#39214f,#170f24);animation:resultEnter .5s cubic-bezier(.18,.8,.25,1)}@keyframes resultEnter{0%{opacity:.5;transform:translateY(8px) scale(.98)}70%{transform:translateY(-2px) scale(1.01)}100%{opacity:1;transform:translateY(0) scale(1)}}.result-banner.win{border-color:#23744b;background:radial-gradient(ellipse at top,#143d30,#100f1b)}.result-banner.lose{border-color:#8a3151;background:radial-gradient(ellipse at top,#4a1d38,#100f1b)}.result-banner.draw{border-color:#8a6a31;background:radial-gradient(ellipse at top,#42351b,#100f1b)}.result-banner.win .big-icon{animation:winBounce .65s ease-out .15s 2}@keyframes winBounce{50%{transform:translateY(-7px) rotate(-5deg) scale(1.08)}}.result-banner h3{font-size:27px;margin:7px 0}.result-word{font-size:30px;font-weight:950;color:#e9d5ff;margin:10px 0}.result-list{display:grid;gap:8px;margin-top:18px}.result-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:#100b1d;border:1px solid var(--line);border-radius:12px}.result-row .right{display:flex;align-items:center;gap:8px}.tag-spy{color:#fda4af;border:1px solid #79304d;background:#3a1729;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900}.tag-citizen{color:#86efac;border:1px solid #286348;background:#103425;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900}.tag-neutral{color:#d8cce8;border:1px solid #51435f;background:#251d30;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900}
+  .discussion-timer{font-size:clamp(36px,9vw,54px);font-weight:950;letter-spacing:.04em;color:#e9d5ff;margin:5px 0;text-shadow:0 0 20px #a855f755}.vote-option.self{opacity:.38;cursor:not-allowed}
+  .note{font-size:12px;color:#a99abf;margin-top:15px}.footer{text-align:center;color:#766987;font-size:11px;margin-top:20px}
+  button:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+  @media(max-width:560px){.shell{padding:15px 12px 28px}.grid,.players,.vote-list{grid-template-columns:1fr}.hero{border-radius:20px}header{margin-bottom:17px}.pill{font-size:9px}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:16px}.actions{flex-direction:column}.actions .btn{width:100%}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand"><div class="logo" aria-hidden="true">🕵️</div><div><h1>CATCH THE SPY</h1><div class="subtitle">TRUST NO ONE · READ THE ROOM</div></div></div>
+    <div class="pill">PARTY MODE / LOCAL</div>
+  </header>
+
+  <main class="hero">
+    <section id="setup" class="screen active">
+      <div class="eyebrow">◈ Social deduction game</div>
+      <h2>One word. One spy.<br>Who can you trust?</h2>
+      <p>Players get a secret word. The spy gets a closely related word, so they can bluff while the group tries to spot the difference.</p>
+      <div class="stats"><div class="stat"><strong id="playerCountStat">5</strong><span>Players</span></div><div class="stat"><strong>1</strong><span>Secret spy</span></div><div class="stat"><strong>∞</strong><span>Replay rounds</span></div></div>
+      <div class="field"><label for="playerCount">HOST SETUP · NUMBER OF PLAYERS</label><select id="playerCount" aria-label="Number of players"></select><div class="note" style="margin-top:0">Choose 3 to 12 players. Add names below or keep the defaults.</div></div>
+      <div class="field" style="margin-top:14px"><label>WORD CATEGORIES</label><div id="categoryOptions" class="category-options" role="group" aria-label="Choose word categories"></div><div class="note" id="categoryHint" style="margin-top:0">All categories are selected.</div></div>
+      <div class="players" id="nameFields"></div>
+      <div class="actions"><button id="startBtn" class="btn primary wide">🎲 &nbsp; Start a new round</button></div>
+      <div class="note">Pass the device around. Make sure each player sees only their own role.</div>
+    </section>
+
+    <section id="reveal" class="screen">
+      <div class="progress"><span id="revealProgress" style="width:0%"></span></div>
+      <div class="center"><div class="eyebrow">◈ Private role reveal</div><div class="big-icon" id="revealIcon">🔐</div><h2 id="revealTitle">Pass the device</h2><p id="revealDescription">Only the named player should look at the screen.</p>
+        <div class="role-card" id="roleCard"><div class="role-tag" id="roleTag">PLAYER TURN</div><div class="secret-word" id="roleWord">Player 1</div><p id="roleMessage" style="margin-bottom:0">Tap when you're ready.</p></div>
+        <div class="actions" id="revealActions"><button id="showRoleBtn" class="btn primary wide">👁 Reveal my role</button></div>
+      </div>
+    </section>
+
+    <section id="discussion" class="screen">
+      <div class="eyebrow" id="discussionEyebrow">◈ DISCUSSION · VOTE 1</div><h2>Discuss who seems suspicious.</h2><p>Go around the active players and give a one-word clue or short hint. Don’t say the secret word directly. The spy should blend in.</p>
+      <div class="role-card center"><div class="role-tag">DISCUSSION TIME</div><div class="discussion-timer" id="discussionTimer">00:45</div><p id="discussionPrompt" style="margin-bottom:0">Talk it over. Voting starts when the timer ends.</p></div>
+      <div class="clue-list" id="discussionPlayers"></div>
+      <div class="role-card"><div class="role-tag">TABLE RULE</div><p style="margin:12px 0 0;color:#e9d5ff">Keep clues vague enough to protect the word, but specific enough to prove you know it.</p></div>
+      <div class="actions"><button id="discussionEarlyVoteBtn" class="btn primary wide">🗳️ &nbsp; Start voting now</button></div>
+    </section>
+
+    <section id="voting" class="screen">
+      <div class="eyebrow" id="votingEyebrow">◈ PRIVATE BALLOT · VOTE 1</div><h2 id="votingTitle">Cast your vote privately.</h2><p id="votingDescription">Pass the device to the named player. Each active player votes once.</p>
+      <div class="role-card center" id="voterCard"><div class="role-tag" id="voterTag">PASS THE DEVICE</div><div class="secret-word" id="currentVoter">Player</div><p id="voterMessage" style="margin-bottom:0">Only this player should look at the screen.</p></div>
+      <div class="vote-list" id="voteOptions" hidden></div>
+      <div class="actions"><button id="showBallotBtn" class="btn primary wide">I'm ready to vote</button><button id="confirmVoteBtn" class="btn primary wide" disabled hidden>Submit private vote</button></div>
+      <div class="note">Votes stay hidden until every active player has submitted a ballot.</div>
+    </section>
+
+    <section id="results" class="screen">
+      <div class="eyebrow">◈ Phase 04 / Reveal</div>
+      <div id="resultBanner" class="result-banner"><div class="big-icon" id="resultIcon">🎭</div><h3 id="resultTitle">Round complete</h3><p id="resultSubtitle" style="margin-bottom:0"></p></div>
+      <div class="role-card center" id="resultWordCard" hidden><div class="role-tag">THE SECRET WORD</div><div id="resultWord" class="result-word">—</div><p id="spyReveal" style="margin-bottom:0"></p></div>
+      <h3 id="resultListHeading" style="margin:22px 0 8px">Vote tally</h3><div class="result-list" id="resultList"></div>
+      <div class="actions"><button id="replayBtn" class="btn primary wide">↻ &nbsp; Continue</button><button id="homeBtn" class="btn secondary">Edit players</button></div>
+    </section>
+  </main>
+  <div class="footer">CATCH THE SPY · Made for game night ✦ No account needed</div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const WORDS = [
+    ['Animals','Panda'],['Animals','Dolphin'],['Animals','Penguin'],['Animals','Tiger'],['Animals','Octopus'],['Animals','Eagle'],['Animals','Giraffe'],['Animals','Fox'],['Animals','Crocodile'],['Animals','Butterfly'],['Animals','Owl'],['Animals','Kangaroo'],
+    ['Food','Pizza'],['Food','Mango'],['Food','Popcorn'],['Food','Noodles'],['Food','Chocolate'],['Food','Samosa'],['Food','Pancake'],['Food','Burger'],['Food','Ice cream'],['Food','Biryani'],['Food','Watermelon'],['Food','Dumpling'],
+    ['Places','Taj Mahal'],['Places','Jaipur'],['Places','Goa'],['Places','Mumbai'],['Places','Delhi'],['Places','Kerala'],['Places','Varanasi'],['Places','Agra'],['Places','Ladakh'],['Places','Kolkata'],['Places','Chennai'],['Places','Hyderabad'],['Places','Bengaluru'],['Places','Mysuru'],['Places','Amritsar'],['Places','Hampi'],['Places','Udaipur'],['Places','Kashmir'],['Places','Jaisalmer'],['Places','Darjeeling'],['Places','Rishikesh'],['Places','Andaman Islands'],['Places','Pune'],['Places','Kochi'],['Places','Shimla'],['Places','Lucknow'],
+    ['Movies','Sholay'],['Movies','3 Idiots'],['Movies','Dangal'],['Movies','Lagaan'],['Movies','Dilwale Dulhania Le Jayenge'],['Movies','Kabhi Khushi Kabhie Gham'],['Movies','Taare Zameen Par'],['Movies','Chak De! India'],['Movies','Bajrangi Bhaijaan'],['Movies','Queen'],['Movies','PK'],['Movies','Zindagi Na Milegi Dobara'],['Movies','Gully Boy'],['Movies','Andhadhun'],['Movies','Jawan'],['Movies','Pathaan'],['Movies','Om Shanti Om'],['Movies','Munna Bhai M.B.B.S.'],['Movies','Kuch Kuch Hota Hai'],['Movies','Barfi!'],
+    ['Objects','Umbrella'],['Objects','Backpack'],['Objects','Mirror'],['Objects','Keyboard'],['Objects','Headphones'],['Objects','Candle'],['Objects','Compass'],['Objects','Telescope'],['Objects','Suitcase'],['Objects','Toothbrush'],
+    ['Technology','Robot'],['Technology','Drone'],['Technology','Smartphone'],['Technology','Satellite'],['Technology','Wi-Fi'],['Technology','Virtual reality'],['Technology','Laptop'],['Technology','Artificial intelligence'],
+    ['Nature','Rainbow'],['Nature','Volcano'],['Nature','Thunderstorm'],['Nature','Waterfall'],['Nature','Desert'],['Nature','Northern lights'],['Nature','Jungle'],['Nature','Snowflake'],
+    ['Sports','Cricket'],['Sports','Football'],['Sports','Badminton'],['Sports','Swimming'],['Sports','Skateboarding'],['Sports','Basketball'],['Sports','Chess'],['Sports','Tennis'],
+    ['Everyday','Birthday'],['Everyday','Wedding'],['Everyday','Camping'],['Everyday','Supermarket'],['Everyday','Traffic jam'],['Everyday','Elevator'],['Everyday','Alarm clock'],['Everyday','Holiday'],
+    ['Indian Celebrities','Shah Rukh Khan'],['Indian Celebrities','Amitabh Bachchan'],['Indian Celebrities','Deepika Padukone'],['Indian Celebrities','Priyanka Chopra'],['Indian Celebrities','Salman Khan'],['Indian Celebrities','Aamir Khan'],['Indian Celebrities','Alia Bhatt'],['Indian Celebrities','Ranbir Kapoor'],['Indian Celebrities','Hrithik Roshan'],['Indian Celebrities','Kareena Kapoor'],['Indian Celebrities','Akshay Kumar'],['Indian Celebrities','Aishwarya Rai Bachchan'],['Indian Celebrities','Ranveer Singh'],['Indian Celebrities','Anushka Sharma'],['Indian Celebrities','Madhuri Dixit'],['Indian Celebrities','Virat Kohli'],['Indian Celebrities','Sachin Tendulkar'],['Indian Celebrities','M.S. Dhoni'],['Indian Celebrities','A.R. Rahman'],['Indian Celebrities','Lata Mangeshkar'],['Indian Celebrities','Diljit Dosanjh'],['Indian Celebrities','P.V. Sindhu'],['Indian Celebrities','Neeraj Chopra'],['Indian Celebrities','Saina Nehwal']
+  ];
+  const CATEGORIES = Array.from(new Set(WORDS.map(([category])=>category)));
+  const MAX_PLAYERS = 12;
+  const DISCUSSION_SECONDS = 45;
+  const DEFAULT_NAMES = Array.from({length:MAX_PLAYERS},(_,i)=>`Player ${i+1}`);
+  const RELATED_WORDS = {
+    Animals:['Koala','Lion','Shark','Seal','Leopard','Wolf','Parrot','Turtle'], Food:['Taco','Sandwich','Fries','Cupcake','Orange','Ramen','Kebab','Cookie'],
+    Places:['Red Fort','Gateway of India','Hawa Mahal','Golden Temple','India Gate','Meenakshi Temple','Charminar','Ajanta Caves','Konark Sun Temple','Kaziranga National Park','Sundarbans','Mahabalipuram'], Movies:['Swades','Rang De Basanti','My Name Is Khan','Veer-Zaara','Don','Kal Ho Naa Ho','Bajirao Mastani','Padmaavat','Piku','Sultan','Raazi','Dhoom'],
+    Objects:['Wallet','Suitcase','Phone charger','Watch','Flashlight','Notebook','Camera','Glasses'], Technology:['Tablet','Computer','Smartwatch','Game console','Router','VR headset'],
+    Nature:['Sunset','Earthquake','River','Forest','Ocean','Canyon','Cloud','Starlight'], Sports:['Volleyball','Rugby','Hockey','Running','Cycling','Baseball','Golf'],
+    Everyday:['Vacation','Picnic','Road trip','Concert','School trip','Shopping','Sleepover','Festival'], 'Indian Celebrities':['Rajinikanth','Kamal Haasan','Mammootty','Mohanlal','N.T. Rama Rao Jr.','Allu Arjun','Ram Charan','Yash','Rashmika Mandanna','Katrina Kaif','Vidya Balan','Shreya Ghoshal','Sonu Nigam','Sunidhi Chauhan','Rohit Sharma','Hardik Pandya','Sania Mirza','Mary Kom','Abhishek Bachchan','Janhvi Kapoor','Kartik Aaryan','Taapsee Pannu','R. Madhavan','S.S. Rajamouli']
+  };
+  let players = [];
+  let spyIndex = -1;
+  let secret = null;
+  let spyWord = '';
+  let playerCount = 5;
+  let nameDrafts = DEFAULT_NAMES.slice();
+  let selectedCategories = new Set(CATEGORIES);
+  let revealIndex = 0;
+  let roleShown = false;
+  let roundNumber = 1;
+  let discussionSeconds = DISCUSSION_SECONDS;
+  let discussionTimerId = null;
+  let ballotOrder = [];
+  let ballotIndex = 0;
+  let ballotUnlocked = false;
+  let selectedVote = -1;
+  let votes = [];
+  let pendingResultAction = 'new-round';
+  const $ = id => document.getElementById(id);
+  const screens = ['setup','reveal','discussion','voting','results'];
+  function showScreen(id){ screens.forEach(s => $(s).classList.toggle('active',s===id)); }
+  function shufflePick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function safeName(value,index){ const v = String(value||'').trim().slice(0,24); return v || `Player ${index+1}`; }
+  function makeNameFields(){
+    $('nameFields').innerHTML = '';
+    for(let i=0;i<playerCount;i++){
+      const wrap=document.createElement('div'); wrap.className='player-input'; wrap.dataset.playerIndex=String(i);
+      const num=document.createElement('div'); num.className='num'; num.textContent=String(i+1);
+      const input=document.createElement('input'); input.id=`playerName${i}`; input.value=nameDrafts[i]||`Player ${i+1}`; input.maxLength=24; input.setAttribute('aria-label',`Name for player ${i+1}`); input.autocomplete='off';
+      input.addEventListener('input',()=>{nameDrafts[i]=input.value;});
+      wrap.append(num,input); $('nameFields').append(wrap);
+    }
+  }
+  function updatePlayerCount(){
+    playerCount=Number($('playerCount').value)||5;
+    $('playerCountStat').textContent=String(playerCount);
+    makeNameFields();
+  }
+  function clearDiscussionTimer(){ if(discussionTimerId!==null){clearInterval(discussionTimerId);discussionTimerId=null;} }
+  function startRound(){
+    clearDiscussionTimer();
+    players = Array.from({length:playerCount},(_,i)=>({name:safeName($(`playerName${i}`).value,i),role:'citizen',active:true}));
+    // Keep duplicate names distinguishable in the ballot and results.
+    const seen = new Map();
+    players.forEach(p=>{const key=p.name.toLocaleLowerCase();const count=seen.get(key)||0;seen.set(key,count+1);if(count)p.name+=` (${count+1})`;});
+    spyIndex = Math.floor(Math.random()*players.length); players[spyIndex].role='spy';
+    const availableWords=WORDS.filter(([category])=>selectedCategories.has(category));
+    secret = shufflePick(availableWords.length?availableWords:WORDS);
+    const related = RELATED_WORDS[secret[0]] || ['Mystery','Puzzle','Secret'];
+    spyWord = shufflePick(related);
+    revealIndex=0; roleShown=false; roundNumber=1; votes=[]; selectedVote=-1;
+    renderReveal(); showScreen('reveal');
+  }
+  function renderReveal(){
+    const p=players[revealIndex]; $('revealProgress').style.width=`${(revealIndex/players.length)*100}%`;
+    $('revealTitle').textContent=`Pass to ${p.name}`; $('revealDescription').textContent='Make sure the previous player has looked away before continuing.';
+    $('revealIcon').textContent='🔐'; $('roleTag').textContent='PRIVATE ROLE'; $('roleWord').textContent=p.name; $('roleWord').style.color='';
+    $('roleMessage').textContent='Tap below to privately reveal your role.';
+    $('roleCard').classList.remove('revealed'); $('roleCard').style.borderColor='#553878'; $('revealActions').innerHTML='';
+    const btn=document.createElement('button'); btn.className='btn primary wide'; btn.textContent='👁 Reveal my role'; btn.addEventListener('click',revealRole); $('revealActions').append(btn); roleShown=false;
+  }
+  function revealRole(){
+    if(roleShown) return; roleShown=true;
+    const p=players[revealIndex]; const isSpy=p.role==='spy';
+    $('revealIcon').textContent=isSpy?'🕵️':'🗝️'; $('roleTag').textContent=isSpy?'YOU ARE THE SPY':'YOUR SECRET WORD';
+    $('roleWord').textContent=isSpy?spyWord:secret[1]; $('roleWord').style.color=isSpy?'#fda4af':'#e9d5ff';
+    $('roleMessage').textContent=isSpy?'You have a related word. Blend in and give clues that fit without revealing your word.':'Remember your word. Give clues without saying it directly.';
+    $('revealDescription').textContent='Memorize your role, then hide the screen before passing the device.';
+    $('revealIcon').textContent=isSpy?'🕵️':'🔑'; $('roleCard').style.borderColor=isSpy?'#9f3659':'#6d43a0';
+    $('roleCard').classList.remove('revealed');void $('roleCard').offsetWidth;$('roleCard').classList.add('revealed');
+    $('revealProgress').style.width=`${((revealIndex+1)/players.length)*100}%`;
+    $('revealActions').innerHTML='';
+    const btn=document.createElement('button'); btn.className='btn primary wide'; btn.textContent=revealIndex===players.length-1?'✓ Everyone has seen their role':'↗ Hide & pass device'; btn.addEventListener('click',nextReveal); $('revealActions').append(btn);
+  }
+  function nextReveal(){ if(!roleShown)return; revealIndex++; if(revealIndex<players.length){renderReveal();return;} startDiscussion(); }
+  function renderDiscussion(){
+    $('discussionPlayers').innerHTML='';
+    let activeTurn=0;
+    players.forEach((p,i)=>{
+      const row=document.createElement('div');row.className='clue';if(!p.active)row.style.opacity='.48';
+      const av=document.createElement('div');av.className='avatar';av.textContent=['🦊','🐼','🦉','🐸','🐯'][i%5];
+      const copy=document.createElement('div');const strong=document.createElement('strong');strong.textContent=p.name;const small=document.createElement('small');
+      small.textContent=p.active?`Clue turn ${++activeTurn} · Give a hint, not the word`:'Eliminated';copy.append(strong,small);row.append(av,copy);$('discussionPlayers').append(row);
+    });
+  }
+  function updateDiscussionTimer(){
+    const mins=String(Math.floor(discussionSeconds/60)).padStart(2,'0');const secs=String(discussionSeconds%60).padStart(2,'0');
+    $('discussionTimer').textContent=`${mins}:${secs}`;
+    $('discussionPrompt').textContent=discussionSeconds>0?'Talk it over. Voting starts when the timer ends.':'Time is up. Passing the device for private ballots…';
+  }
+  function startDiscussion(){
+    clearDiscussionTimer();renderDiscussion();$('discussionEyebrow').textContent=`◈ DISCUSSION · VOTE ${roundNumber}`;
+    discussionSeconds=DISCUSSION_SECONDS;updateDiscussionTimer();showScreen('discussion');
+    discussionTimerId=setInterval(()=>{discussionSeconds--;updateDiscussionTimer();if(discussionSeconds<=0)beginVoting();},1000);
+  }
+  function beginVoting(){
+    clearDiscussionTimer();ballotOrder=players.map((p,i)=>p.active?i:-1).filter(i=>i>=0);ballotIndex=0;votes=[];selectedVote=-1;
+    if(ballotOrder.length<2){showVoteResult('spy-wins',-1);return;}
+    showScreen('voting');renderBallotPass();
+  }
+  function renderBallotPass(){
+    const voterIndex=ballotOrder[ballotIndex];const voter=players[voterIndex];ballotUnlocked=false;selectedVote=-1;
+    $('votingEyebrow').textContent=`◈ PRIVATE BALLOT · VOTE ${roundNumber}`;
+    $('votingTitle').textContent='Cast your vote privately.';
+    $('votingDescription').textContent=`Ballot ${ballotIndex+1} of ${ballotOrder.length}. Pass the device to the named player.`;
+    $('voterTag').textContent='PASS THE DEVICE';$('currentVoter').textContent=voter.name;$('voterMessage').textContent='Only this player should look at the screen.';
+    $('voteOptions').innerHTML='';$('voteOptions').hidden=true;$('showBallotBtn').hidden=false;$('showBallotBtn').textContent=`I'm ${voter.name} — show my ballot`;
+    $('confirmVoteBtn').hidden=true;$('confirmVoteBtn').disabled=true;
+  }
+  function showPrivateBallot(){
+    if(ballotUnlocked)return;ballotUnlocked=true;const voterIndex=ballotOrder[ballotIndex];
+    $('voterTag').textContent=`BALLOT ${ballotIndex+1} OF ${ballotOrder.length}`;
+    $('voterMessage').textContent='Choose the player you suspect. Your choice stays hidden.';
+    $('showBallotBtn').hidden=true;$('confirmVoteBtn').hidden=false;$('confirmVoteBtn').disabled=true;
+    $('voteOptions').innerHTML='';$('voteOptions').hidden=false;
+    players.forEach((p,i)=>{
+      if(!p.active||i===voterIndex)return;
+      const btn=document.createElement('button');btn.type='button';btn.className='vote-option';btn.setAttribute('aria-pressed','false');
+      const avatar=document.createElement('span');avatar.className='num';avatar.textContent=String(i+1);
+      const name=document.createElement('strong');name.textContent=p.name;
+      const check=document.createElement('span');check.className='check';btn.append(avatar,name,check);
+      btn.addEventListener('click',()=>{
+        selectedVote=i;Array.from($('voteOptions').children).forEach(el=>{const chosen=Number(el.dataset.playerIndex)===i;el.classList.toggle('selected',chosen);el.setAttribute('aria-pressed',String(chosen));el.querySelector('.check').textContent=chosen?'✓':'';});
+        $('confirmVoteBtn').disabled=false;
+      });btn.dataset.playerIndex=String(i);$('voteOptions').append(btn);
+    });
+  }
+  function submitPrivateVote(){
+    if(!ballotUnlocked||selectedVote<0)return;
+    votes.push({voterIndex:ballotOrder[ballotIndex],targetIndex:selectedVote});ballotIndex++;
+    if(ballotIndex<ballotOrder.length){renderBallotPass();return;}
+    tallyVotes();
+  }
+  function getVoteCounts(){
+    const counts=players.map(()=>0);votes.forEach(v=>{counts[v.targetIndex]++;});return counts;
+  }
+  function tallyVotes(){
+    const counts=getVoteCounts();const activeIndexes=players.map((p,i)=>p.active?i:-1).filter(i=>i>=0);
+    const high=Math.max(...activeIndexes.map(i=>counts[i]));const leaders=activeIndexes.filter(i=>counts[i]===high);
+    if(leaders.length>1){showVoteResult('draw',-1);return;}
+    const eliminatedIndex=leaders[0];players[eliminatedIndex].active=false;
+    if(players[eliminatedIndex].role==='spy'){showVoteResult('spy-caught',eliminatedIndex);return;}
+    const remaining=players.filter(p=>p.active).length;
+    if(remaining<=2){showVoteResult('spy-wins',eliminatedIndex);return;}
+    showVoteResult('player-out',eliminatedIndex);
+  }
+  function renderVoteTally(final,eliminatedIndex,counts){
+    $('resultList').innerHTML='';
+    players.forEach((p,i)=>{
+      const row=document.createElement('div');row.className='result-row';const name=document.createElement('strong');name.textContent=p.name;
+      const right=document.createElement('div');right.className='right';const count=document.createElement('span');count.style.color='#c9badb';count.style.fontSize='12px';count.textContent=`${counts[i]} ${counts[i]===1?'vote':'votes'}`;
+      const tag=document.createElement('span');
+      if(final){tag.className=p.role==='spy'?'tag-spy':'tag-citizen';tag.textContent=p.role==='spy'?'SPY':'CIVILIAN';}
+      else {const out=!p.active;tag.className=out?'tag-neutral':'tag-citizen';tag.textContent=out?'OUT':'IN';}
+      right.append(count,tag);row.append(name,right);$('resultList').append(row);
+    });
+    $('resultListHeading').textContent=final?'Players, roles & vote tally':'Vote tally';
+  }
+  function showVoteResult(kind,eliminatedIndex){
+    const counts=getVoteCounts();const final=kind==='spy-caught'||kind==='spy-wins';
+    $('resultWordCard').hidden=!final;
+    $('resultBanner').className='result-banner';
+    if(kind==='draw'){
+      const activeIndexes=players.map((p,i)=>p.active?i:-1).filter(i=>i>=0);const high=Math.max(...activeIndexes.map(i=>counts[i]));const tied=activeIndexes.filter(i=>counts[i]===high).map(i=>players[i].name);
+      $('resultBanner').classList.add('draw');$('resultIcon').textContent='🤝';$('resultTitle').textContent='It’s a draw!';$('resultSubtitle').textContent=`${tied.join(' and ')} tied with ${high} ${high===1?'vote':'votes'}. Nobody is eliminated; discuss and vote again.`;
+      pendingResultAction='discussion';$('replayBtn').textContent='↻  Discuss & vote again';
+    } else if(kind==='player-out'){
+      $('resultIcon').textContent='🗳️';$('resultTitle').textContent=`${players[eliminatedIndex].name} was voted out`;$('resultSubtitle').textContent=`They received ${counts[eliminatedIndex]} ${counts[eliminatedIndex]===1?'vote':'votes'}. ${players.filter(p=>p.active).length} players remain; discuss before the next ballot.`;
+      pendingResultAction='discussion';$('replayBtn').textContent='↻  Continue to discussion';
+    } else if(kind==='spy-caught'){
+      $('resultBanner').classList.add('win');$('resultIcon').textContent='🎉';$('resultTitle').textContent='Spy caught!';$('resultSubtitle').textContent=`${players[spyIndex].name} was correctly identified. The civilians win.`;
+      pendingResultAction='new-round';$('replayBtn').textContent='↻  Play another round';
+    } else {
+      const eliminatedNote=eliminatedIndex>=0?`; ${players[eliminatedIndex].name} was voted out`:'';
+      $('resultBanner').classList.add('lose');$('resultIcon').textContent='🫣';$('resultTitle').textContent='The spy wins!';$('resultSubtitle').textContent=`Only two players remain and the spy is still among them${eliminatedNote}.`;
+      pendingResultAction='new-round';$('replayBtn').textContent='↻  Play another round';
+    }
+    if(final){$('resultWord').textContent=secret[1];$('spyReveal').textContent=`The spy was ${players[spyIndex].name} and had the related word “${spyWord}”. Category: ${secret[0]}.`;}
+    renderVoteTally(final,eliminatedIndex,counts);showScreen('results');
+  }
+  function continueFromResult(){
+    if(pendingResultAction==='discussion'){roundNumber++;startDiscussion();return;}
+    startRound();
+  }
+  function initializePlayerCount(){
+    for(let count=3;count<=MAX_PLAYERS;count++){const option=document.createElement('option');option.value=String(count);option.textContent=`${count} players`;if(count===5)option.selected=true;$('playerCount').append(option);}
+  }
+  function renderCategoryOptions(){
+    const container=$('categoryOptions');container.innerHTML='';
+    const allSelected=selectedCategories.size===CATEGORIES.length;
+    const allButton=document.createElement('button');allButton.type='button';allButton.className=`category-option${allSelected?' selected':''}`;allButton.textContent='All categories';allButton.setAttribute('aria-pressed',String(allSelected));
+    allButton.addEventListener('click',()=>{selectedCategories=new Set(CATEGORIES);renderCategoryOptions();});container.append(allButton);
+    CATEGORIES.forEach(category=>{
+      const button=document.createElement('button');button.type='button';button.className=`category-option${selectedCategories.has(category)?' selected':''}`;button.textContent=category;button.setAttribute('aria-pressed',String(selectedCategories.has(category)));
+      button.addEventListener('click',()=>{
+        if(selectedCategories.has(category)){if(selectedCategories.size===1)return;selectedCategories.delete(category);}
+        else selectedCategories.add(category);
+        renderCategoryOptions();
+      });container.append(button);
+    });
+    $('categoryHint').textContent=allSelected?'All categories are selected.':`Selected: ${CATEGORIES.filter(category=>selectedCategories.has(category)).join(', ')}.`;
+  }
+  $('playerCount').addEventListener('change',updatePlayerCount);
+  $('startBtn').addEventListener('click',startRound);
+  $('showRoleBtn').addEventListener('click',revealRole);
+  $('discussionEarlyVoteBtn').addEventListener('click',beginVoting);
+  $('showBallotBtn').addEventListener('click',showPrivateBallot);
+  $('confirmVoteBtn').addEventListener('click',submitPrivateVote);
+  $('replayBtn').addEventListener('click',continueFromResult);
+  $('homeBtn').addEventListener('click',()=>{clearDiscussionTimer();showScreen('setup');});
+  initializePlayerCount();updatePlayerCount();renderCategoryOptions();
+})();
+</script>
+</body>
+</html>
